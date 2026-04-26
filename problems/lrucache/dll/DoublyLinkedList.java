@@ -1,4 +1,4 @@
-package solution;
+package dll;
 
 public class DoublyLinkedList<K, V> {
 

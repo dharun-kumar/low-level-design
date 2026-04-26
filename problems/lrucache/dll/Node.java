@@ -1,11 +1,11 @@
-package solution;
+package dll;
 
 public class Node<K, V> {
 
-    K key;
-    V value;
-    Node<K, V> prev;
-    Node <K, V> next;
+    public K key;
+    public V value;
+    public Node<K, V> prev;
+    public Node <K, V> next;
 
     public Node(K key, V value) {
         this.key = key;

@@ -1,4 +1,7 @@
-package solution;
+package cache;
+
+import dll.DoublyLinkedList;
+import dll.Node;
 
 import java.util.HashMap;
 import java.util.Map;

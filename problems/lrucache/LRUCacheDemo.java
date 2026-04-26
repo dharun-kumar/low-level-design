@@ -1,4 +1,4 @@
-package solution;
+import cache.LRUCache;
 
 public class LRUCacheDemo {
 
