@@ -1,11 +1,10 @@
-package split;
+package strategy;
 
 import entity.Split;
 import entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class EqualSplit implements SplitStrategy {
     @Override

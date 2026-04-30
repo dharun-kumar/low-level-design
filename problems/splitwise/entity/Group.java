@@ -17,8 +17,8 @@ public class Group {
         this.expenses = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public void addMembers(Set<User> members) {
-        this.members.addAll(members);
+    public void addMember(User member) {
+        this.members.add(member);
     }
 
     public void addExpense(Expense expense) {

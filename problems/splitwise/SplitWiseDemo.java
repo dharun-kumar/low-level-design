@@ -1,15 +1,15 @@
 import entity.Expense;
 import service.SplitwiseService;
-import split.EqualSplit;
-import split.ExactSplit;
-import split.PercentSplit;
+import strategy.EqualSplit;
+import strategy.ExactSplit;
+import strategy.PercentSplit;
 
 import java.util.List;
 import java.util.Set;
 
 public class SplitWiseDemo {
 
-    public static void main() {
+    public static void main(String[] args) {
 
         SplitwiseService splitwiseService = SplitwiseService.getInstance();
 
@@ -59,8 +59,8 @@ public class SplitWiseDemo {
         splitwiseService.displayGroupBalance(groupID);
         System.out.println();
 
-        System.out.println("Simplified debt ");
-        splitwiseService.simplifyDebts(groupID);
+        System.out.println("Simplified debts:");
+        splitwiseService.simplifyDebts(groupID).forEach(System.out::println);
         System.out.println();
 
         splitwiseService.settleUp(bobID, aliceID, 296);

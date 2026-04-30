@@ -1,6 +1,6 @@
 package entity;
 
-import split.SplitStrategy;
+import strategy.SplitStrategy;
 
 import java.time.Instant;
 import java.util.List;
@@ -10,14 +10,13 @@ public class Expense {
 
     private final UUID expenseID;
     private String description;
-    private User paidBy;
-    private double amount;
-    private List<User> participants;
-    private List<Split> splits;
+    private final User paidBy;
+    private final double amount;
+    private final List<User> participants;
+    private final List<Split> splits;
     private final long timeStamp;
 
-
-    public Expense(Builder builder) {
+    private Expense(Builder builder) {
         this.expenseID = UUID.randomUUID();
         this.description = builder.description;
         this.paidBy = builder.paidBy;

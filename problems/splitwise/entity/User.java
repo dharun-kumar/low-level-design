@@ -40,4 +40,9 @@ public class User {
         return userID.equals(user.getUserID());
     }
 
+    @Override
+    public int hashCode() {
+        return userID.hashCode();
+    }
+
 }

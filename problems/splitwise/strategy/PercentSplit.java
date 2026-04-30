@@ -1,4 +1,4 @@
-package split;
+package strategy;
 
 import entity.Split;
 import entity.User;

@@ -1,9 +1,6 @@
 package service;
 
-import entity.Expense;
-import entity.Group;
-import entity.Split;
-import entity.User;
+import entity.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,8 +9,8 @@ public class SplitwiseService {
 
     private static SplitwiseService INSTANCE;
 
-    private Map<String, User> allUsers;
-    private Map<String, Group> groups;
+    private final Map<String, User> allUsers;
+    private final Map<String, Group> groups;
 
     private SplitwiseService() {
         allUsers = new ConcurrentHashMap<>();
@@ -27,27 +24,25 @@ public class SplitwiseService {
         return INSTANCE;
     }
 
-    public String createGroup(String name) {
+    public synchronized String createGroup(String name) {
         Group group = new Group(name);
         groups.put(group.getGroupID(), group);
         return group.getGroupID();
     }
 
-    public String createUser(String name, String email) {
+    public synchronized String createUser(String name, String email) {
         User user = new User(name, email);
         allUsers.put(user.getUserID(), user);
         return user.getUserID();
     }
 
-    public void addParticipants(String groupID, Set<String> participantsID) {
-        Set<User> participants = new HashSet<>();
+    public synchronized void addParticipants(String groupID, Set<String> participantsID) {
         for(String participantID : participantsID) {
-            participants.add(getUserByID(participantID));
+            getGroupByID(groupID).addMember(getUserByID(participantID));
         }
-        getGroupByID(groupID).addMembers(participants);
     }
 
-    public void addExpense(String groupID, Expense expense) {
+    public synchronized void addExpense(String groupID, Expense expense) {
         for(User participant: expense.getParticipants()) {
             if(!getGroupByID(groupID).getMembers().contains(participant)) {
                 throw new IllegalArgumentException("Participant with ID " + participant.getUserID() + " is not part of the group with ID " + groupID);
@@ -62,18 +57,18 @@ public class SplitwiseService {
         getGroupByID(groupID).addExpense(expense);
     }
 
-    public void settleUp(String senderID, String receiverID, double amount) {
+    public synchronized void settleUp(String senderID, String receiverID, double amount) {
         getUserByID(senderID).getBalance().adjustBalance(getUserByID(receiverID), amount);
         getUserByID(receiverID).getBalance().adjustBalance(getUserByID(senderID), -(amount));
     }
 
-    public void displayGroupBalance(String groupID) {
+    public synchronized void displayGroupBalance(String groupID) {
         for(User user : getGroupByID(groupID).getMembers()) {
             user.getBalance().displayBalance(getGroupByID(groupID).getMembers());
         }
     }
 
-    public void displayUserBalance(String userID) {
+    public synchronized void displayUserBalance(String userID) {
         getUserByID(userID).getBalance().displayBalance(null);
     }
 
@@ -92,15 +87,13 @@ public class SplitwiseService {
         return groups.get(groupID);
     }
 
-    public void simplifyDebts(String groupID) {
+    public synchronized List<Transaction> simplifyDebts(String groupID) {
         Map<String, Double> netBalances = new HashMap<>();
 
-        for(User user : getGroupByID(groupID).getMembers()) {
+        for (User user : getGroupByID(groupID).getMembers()) {
             double netBalance = 0;
-
-            // calculating net only with group members
-            for(Map.Entry<User, Double> entry : user.getBalance().getAllBalances().entrySet()) {
-                if(getGroupByID(groupID).getMembers().contains(entry.getKey())) {
+            for (Map.Entry<User, Double> entry : user.getBalance().getAllBalances().entrySet()) {
+                if (getGroupByID(groupID).getMembers().contains(entry.getKey())) {
                     netBalance += entry.getValue();
                 }
             }
@@ -117,28 +110,24 @@ public class SplitwiseService {
                 .sorted(Map.Entry.comparingByValue())
                 .toList();
 
+        int i = 0, j = 0;
+        List<Transaction> transactions = new ArrayList<>();
 
-        int i=0, j=0;
-        while(i < creditors.size() && j < debtors.size()) {
-
+        while (i < creditors.size() && j < debtors.size()) {
             Map.Entry<String, Double> creditor = creditors.get(i);
             Map.Entry<String, Double> debtor = debtors.get(j);
 
-            double minSettleAmount = Math.min(creditor.getValue(), Math.abs(debtor.getValue()));
+            double settleAmount = Math.min(creditor.getValue(), Math.abs(debtor.getValue()));
+            transactions.add(new Transaction(getUserByID(debtor.getKey()), getUserByID(creditor.getKey()), settleAmount));
 
-            System.out.printf("%s pays %s : %.2f%n", getUserByID(debtor.getKey()).getName(), getUserByID(creditor.getKey()).getName(), minSettleAmount);
+            creditor.setValue(creditor.getValue() - settleAmount);
+            debtor.setValue(debtor.getValue() + settleAmount);
 
-            creditor.setValue(creditor.getValue() - minSettleAmount);
-            debtor.setValue(debtor.getValue() + minSettleAmount);
-
-            if(Math.abs(creditor.getValue()) < 0.01) {
-                i++;
-            }
-            if(Math.abs(debtor.getValue()) < 0.01) {
-                j++;
-            }
-
+            if (Math.abs(creditor.getValue()) < 0.01) i++;
+            if (Math.abs(debtor.getValue()) < 0.01) j++;
         }
+
+        return transactions;
     }
 
 }
