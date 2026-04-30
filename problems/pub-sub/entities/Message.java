@@ -1,4 +1,4 @@
-package message;
+package entities;
 
 import java.time.Instant;
 

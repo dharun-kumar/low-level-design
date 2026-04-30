@@ -1,4 +1,4 @@
-package ticket;
+package entities;
 
 import vehicle.Vehicle;
 import vehicle.VehicleStatus;

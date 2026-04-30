@@ -1,4 +1,4 @@
-package floor;
+package entities;
 
 import vehicle.Vehicle;
 import vehicle.VehicleType;

@@ -25,18 +25,18 @@ This is a classic low-level design problem that tests the ability to combine two
 ## UML Diagram
 
 ```
-┌─────────────────────────────────────┐
-│           LRUCache<K, V>            │
-├─────────────────────────────────────┤
-│ - CAPACITY: int                     │
-│ - CACHE: Map<K, Node<K,V>>          │
-│ - DOUBLY_LINKED_LIST: DoublyLinked  │
-│         List<K,V>                   │
-├─────────────────────────────────────┤
-│ + get(key: K): V                    │
-│ + put(key: K, value: V): void       │
-│ + remove(key: K): void              │
-└────────────┬──────────┬─────────────┘
+┌──────────────────────────────────────────┐
+│         LRUCacheService<K, V>            │
+├──────────────────────────────────────────┤
+│ - CAPACITY: int                          │
+│ - CACHE: Map<K, Node<K,V>>              │
+│ - DOUBLY_LINKED_LIST: DoublyLinkedList   │
+│         <K,V>                            │
+├──────────────────────────────────────────┤
+│ + get(key: K): V                         │
+│ + put(key: K, value: V): void            │
+│ + remove(key: K): void                   │
+└────────────┬──────────┬──────────────────┘
              │          │
          composes   maps via CACHE
              │          │
@@ -61,7 +61,7 @@ This is a classic low-level design problem that tests the ability to combine two
 |---|---|
 | `Node<K, V>` | Holds a key-value pair with pointers to the previous and next nodes in the doubly linked list. |
 | `DoublyLinkedList<K, V>` | Maintains insertion order with O(1) add, remove, and reorder. The head side is most-recent; the tail side is least-recent. Sentinel head and tail nodes eliminate null checks. |
-| `LRUCache<K, V>` | Combines the map and list to serve as the public API. The map provides O(1) lookup; the list provides O(1) eviction ordering. |
+| `LRUCacheService<K, V>` | Combines the map and list to serve as the public API. The map provides O(1) lookup; the list provides O(1) eviction ordering. |
 
 ---
 
@@ -84,10 +84,10 @@ Combining them solves both: the map stores `key → Node` for instant lookup, an
 All three classes are generic. This makes the cache reusable for any key and value types without sacrificing type safety, following the **Open/Closed Principle** — the cache is open for use with new types but closed for modification.
 
 ### 5. Thread Safety via `synchronized`
-`get`, `put`, and `remove` in `LRUCache` are all declared `synchronized`. This ensures mutual exclusion on the shared `CACHE` map and `DOUBLY_LINKED_LIST` without introducing external locking concerns on the caller. It is a deliberate simplicity trade-off — sufficient for moderate concurrency, with `ReadWriteLock` or `ConcurrentHashMap`-based approaches as natural next steps for high-throughput scenarios.
+`get`, `put`, and `remove` in `LRUCacheService` are all declared `synchronized`. This ensures mutual exclusion on the shared `CACHE` map and `DOUBLY_LINKED_LIST` without introducing external locking concerns on the caller. It is a deliberate simplicity trade-off — sufficient for moderate concurrency, with `ReadWriteLock` or `ConcurrentHashMap`-based approaches as natural next steps for high-throughput scenarios.
 
 ### 6. Encapsulation of List Operations
-All structural mutations of the doubly linked list are encapsulated in `DoublyLinkedList`. `LRUCache` only calls `addFirst`, `moveToFirst`, `remove`, and `removeLast` — it never manipulates node pointers directly. This separation of concerns keeps `LRUCache` focused on cache policy and `DoublyLinkedList` focused on list mechanics.
+All structural mutations of the doubly linked list are encapsulated in `DoublyLinkedList`. `LRUCacheService` only calls `addFirst`, `moveToFirst`, `remove`, and `removeLast` — it never manipulates node pointers directly. This separation of concerns keeps `LRUCacheService` focused on cache policy and `DoublyLinkedList` focused on list mechanics.
 
 ---
 

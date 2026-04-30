@@ -1,11 +1,11 @@
 import service.PubSubService;
-import sub.SportsSubscriber;
-import sub.Subscriber;
-import sub.WeatherSubscriber;
+import subscriber.SportsSubscriber;
+import subscriber.Subscriber;
+import subscriber.WeatherSubscriber;
 
 public class PubSubDemo {
 
-    public static void main() throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
 
         PubSubService service = PubSubService.getInstance();
 

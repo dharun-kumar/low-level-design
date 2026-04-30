@@ -1,6 +1,6 @@
-package sub;
+package subscriber;
 
-import message.Message;
+import entities.Message;
 
 public interface Subscriber {
     void onMessage(Message message);

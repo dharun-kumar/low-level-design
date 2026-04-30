@@ -1,7 +1,6 @@
-package topic;
+package entities;
 
-import message.Message;
-import sub.Subscriber;
+import subscriber.Subscriber;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;

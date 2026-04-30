@@ -1,7 +1,7 @@
-package parking;
+package service;
 
-import floor.ParkingFloor;
-import ticket.ParkingTicket;
+import entities.ParkingFloor;
+import entities.ParkingTicket;
 import vehicle.Vehicle;
 import vehicle.VehicleStatus;
 
@@ -9,20 +9,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ParkingLot {
+public class ParkingLotService {
 
     private final List<ParkingFloor> parkingFloors;
-    private static volatile ParkingLot INSTANCE;
+    private static volatile ParkingLotService INSTANCE;
 
-    private ParkingLot() {
+    private ParkingLotService() {
         this.parkingFloors = new ArrayList<>();
     }
 
-    public static ParkingLot getInstance() {
+    public static ParkingLotService getInstance() {
         if(INSTANCE == null) {
-            synchronized (ParkingLot.class) {
+            synchronized (ParkingLotService.class) {
                 if(INSTANCE == null) {
-                    INSTANCE = new ParkingLot();
+                    INSTANCE = new ParkingLotService();
                 }
             }
         }

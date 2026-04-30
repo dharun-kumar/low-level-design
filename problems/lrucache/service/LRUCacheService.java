@@ -1,4 +1,4 @@
-package cache;
+package service;
 
 import dll.DoublyLinkedList;
 import dll.Node;
@@ -6,13 +6,13 @@ import dll.Node;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LRUCache<K, V> {
+public class LRUCacheService<K, V> {
 
     private final int CAPACITY;
     private final Map<K, Node<K, V>> CACHE;
     private final DoublyLinkedList<K,V> DOUBLY_LINKED_LIST;
 
-    public LRUCache(int capacity) {
+    public LRUCacheService(int capacity) {
         CAPACITY= capacity;
         CACHE = new HashMap<>();
         DOUBLY_LINKED_LIST = new DoublyLinkedList<>();

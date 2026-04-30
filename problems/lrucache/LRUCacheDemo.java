@@ -1,20 +1,20 @@
-import cache.LRUCache;
+import service.LRUCacheService;
 
 public class LRUCacheDemo {
 
-    static void main() {
+    public static void main(String[] args) {
 
-        LRUCache<Integer, String> lruCache = new LRUCache<>(3);
+        LRUCacheService<Integer, String> lruCacheService = new LRUCacheService<>(3);
 
-        lruCache.put(1, "Alice");
-        lruCache.put(2, "Bob");
-        lruCache.put(3, "David");
+        lruCacheService.put(1, "Alice");
+        lruCacheService.put(2, "Bob");
+        lruCacheService.put(3, "David");
 
-        System.out.println(lruCache.get(1));
+        System.out.println(lruCacheService.get(1));
 
-        lruCache.put(4, "John");
+        lruCacheService.put(4, "John");
 
-        System.out.println(lruCache.get(2));
+        System.out.println(lruCacheService.get(2));
     }
 
 }

@@ -25,17 +25,17 @@ This is a classic low-level design problem that tests the ability to model a rea
 ## UML Diagram
 
 ```
-                        ┌──────────────────────────────────┐
-                        │        ParkingLot <<Singleton>>  │
-                        ├──────────────────────────────────┤
-                        │ - parkingFloors: List<ParkingFloor>│
-                        │ - INSTANCE: ParkingLot           │
-                        ├──────────────────────────────────┤
-                        │ + getInstance(): ParkingLot      │
-                        │ + setCapacity(...): void         │
+                        ┌──────────────────────────────────────┐
+                        │     ParkingLotService <<Singleton>>  │
+                        ├──────────────────────────────────────┤
+                        │ - parkingFloors: List<ParkingFloor>  │
+                        │ - INSTANCE: ParkingLotService        │
+                        ├──────────────────────────────────────┤
+                        │ + getInstance(): ParkingLotService   │
+                        │ + setCapacity(...): void             │
                         │ + checkIn(vehicle): Optional<ParkingTicket> │
-                        │ + checkOut(ticket): void         │
-                        └────────────┬─────────────────────┘
+                        │ + checkOut(ticket): void             │
+                        └────────────┬─────────────────────────┘
                                      │ contains 1..*
                                      ▼
                         ┌──────────────────────────────┐
@@ -87,7 +87,7 @@ This is a classic low-level design problem that tests the ability to model a rea
 | `VehicleStatus` | Enum tracking vehicle lifecycle: `UNPARKED → PARKED → CHECKED_OUT`. |
 | `ParkingFloor` | Manages available and total slot counts per vehicle type using a `Map<VehicleType, Integer>`. Handles park and free operations. |
 | `ParkingTicket` | Receipt issued on check-in. Records entry time and floor. Calculates fare on checkout. Exposes fare only after checkout via `Optional<Double>`. |
-| `ParkingLot` | Singleton entry point. Iterates floors to find the first available slot, owns the vehicle status lifecycle, and synchronizes concurrent access. |
+| `ParkingLotService` | Singleton entry point. Iterates floors to find the first available slot, owns the vehicle status lifecycle, and synchronizes concurrent access. |
 
 ---
 
@@ -102,7 +102,7 @@ Using `Map<VehicleType, Integer>` keyed by the enum reduces both `parkVehicle` a
 Earlier versions called `vehicle.getType()` and compared strings like `"Car"` with `equalsIgnoreCase`. This caused a real bug — `Truck.TYPE` was accidentally set to `"Bike"`, silently routing trucks to bike slots. An enum makes this class of bug impossible at compile time.
 
 ### 3. Singleton with Separated Configuration
-`ParkingLot` is a Singleton because only one physical lot exists. Passing configuration parameters directly into `getInstance(...)` is an anti-pattern — after the first call, subsequent calls with different parameters are silently ignored.
+`ParkingLotService` is a Singleton because only one physical lot exists. Passing configuration parameters directly into `getInstance(...)` is an anti-pattern — after the first call, subsequent calls with different parameters are silently ignored.
 
 `getInstance()` handles identity only. `setCapacity(...)` handles one-time configuration and throws `IllegalStateException` if called more than once (`!parkingFloors.isEmpty()`), preventing silent state corruption from accidental double-initialization.
 
@@ -112,11 +112,11 @@ Returning `null` when the lot is full gives the caller no way to distinguish an 
 ### 5. `Optional<Double>` on `getFare`
 `getFare()` returns `Optional.empty()` if the vehicle has not been checked out yet (status is not `CHECKED_OUT`). This prevents callers from silently reading a `0.0` fare before checkout has occurred.
 
-### 6. Vehicle Status Owned by `ParkingLot`
-`ParkingTicket` is a receipt — it records a transaction, not manages a vehicle's lifecycle. `ParkingTicket` constructor does not call `setStatus`. Both transitions are in `ParkingLot` exclusively: `checkIn` sets `PARKED` after a floor confirms a slot, `checkOut` sets `CHECKED_OUT` after fare is calculated. This makes `ParkingLot` the single source of truth for vehicle lifecycle and enables double-park prevention with one guard in `checkIn`.
+### 6. Vehicle Status Owned by `ParkingLotService`
+`ParkingTicket` is a receipt — it records a transaction, not manages a vehicle's lifecycle. `ParkingTicket` constructor does not call `setStatus`. Both transitions are in `ParkingLotService` exclusively: `checkIn` sets `PARKED` after a floor confirms a slot, `checkOut` sets `CHECKED_OUT` after fare is calculated. This makes `ParkingLotService` the single source of truth for vehicle lifecycle and enables double-park prevention with one guard in `checkIn`.
 
-### 7. Thread Safety via `synchronized` on `ParkingLot`
-`checkIn` and `checkOut` are `synchronized` on the `ParkingLot` instance. Since `ParkingLot` is a Singleton, this provides a single lock for all slot mutations. `availableSpots` in `ParkingFloor` uses `ConcurrentHashMap` for map-level safety, but the compound check-then-act in `parkVehicle` (`get > 0` then `put`) requires the outer `ParkingLot` lock to be fully race-free. The correct floor-level fix is `ConcurrentHashMap.computeIfPresent` for atomic decrement.
+### 7. Thread Safety — Two-Layer Locking
+`checkIn` and `checkOut` are `synchronized` on the `ParkingLotService` instance providing a single outer lock for all slot mutations. Inside `ParkingFloor`, `parkVehicle` uses `ConcurrentHashMap.compute` and `freeVehicleSpot` uses `ConcurrentHashMap.computeIfPresent` — making each slot decrement and increment atomically at the map level. The two layers together eliminate the check-then-act race: the outer lock serializes cross-floor decisions, the inner compute ensures no torn writes on the slot counters themselves.
 
 ### 8. Fare Calculation with Ceiling Hours
 `Math.ceil(parkedHours)` is used so that any partial hour is billed as a full hour — standard real-world parking billing. Entry and exit timestamps use `Instant.now().getEpochSecond()` (wall-clock seconds) rather than `System.nanoTime()` (monotonic, not wall-clock), which is correct for billing duration.

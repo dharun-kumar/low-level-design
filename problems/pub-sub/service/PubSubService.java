@@ -1,8 +1,8 @@
 package service;
 
-import message.Message;
-import sub.Subscriber;
-import topic.Topic;
+import entities.Message;
+import subscriber.Subscriber;
+import entities.Topic;
 import java.util.Map;
 import java.util.concurrent.*;
 
