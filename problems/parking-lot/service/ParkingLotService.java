@@ -12,24 +12,20 @@ import java.util.Optional;
 public class ParkingLotService {
 
     private final List<ParkingFloor> parkingFloors;
-    private static volatile ParkingLotService INSTANCE;
+    private static ParkingLotService INSTANCE;
 
     private ParkingLotService() {
         this.parkingFloors = new ArrayList<>();
     }
 
-    public static ParkingLotService getInstance() {
+    public synchronized static ParkingLotService getInstance() {
         if(INSTANCE == null) {
-            synchronized (ParkingLotService.class) {
-                if(INSTANCE == null) {
-                    INSTANCE = new ParkingLotService();
-                }
-            }
+            INSTANCE = new ParkingLotService();
         }
         return INSTANCE;
     }
 
-    public void setCapacity(int floors, int carCapacityPerFloor, int bikeCapacityPerFloor, int truckCapacityPerFloor) {
+    public synchronized void setCapacity(int floors, int carCapacityPerFloor, int bikeCapacityPerFloor, int truckCapacityPerFloor) {
         if(!parkingFloors.isEmpty()) {
             throw new IllegalStateException("ParkingLot is already configured");
         }

@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 
 public class PubSubService {
 
-    private static volatile PubSubService INSTANCE;
+    private static PubSubService INSTANCE;
     private final Map<String,Topic> topics;
     private final ExecutorService executorService;
 
@@ -17,13 +17,9 @@ public class PubSubService {
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
-    public static PubSubService getInstance() {
+    public synchronized static PubSubService getInstance() {
         if(INSTANCE == null) {
-            synchronized(PubSubService.class) {
-                if(INSTANCE == null) {
-                    INSTANCE = new PubSubService();
-                }
-            }
+            INSTANCE = new PubSubService();
         }
         return INSTANCE;
     }
@@ -54,7 +50,7 @@ public class PubSubService {
         });
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
 
         for (Topic topic : topics.values()) {
             topic.broadCastMessages();
